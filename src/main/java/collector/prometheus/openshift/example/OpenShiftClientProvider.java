@@ -21,9 +21,14 @@ public class OpenShiftClientProvider {
 		OpenShiftConfig openshiftConfig;
 		String token = getEnvVar(OCP_TOKEN);
 
+		String masterUrl = getEnvVar(OCP_MASTER_URL);
+		if (masterUrl == null){
+			throw new IllegalArgumentException("Connectin to OpenShift cluster require env var "+OCP_MASTER_URL);
+		}
+		
 		if (token != null){
 			openshiftConfig =  new OpenShiftConfigBuilder()
-					.withMasterUrl(getEnvVar(OCP_MASTER_URL))
+					.withMasterUrl(masterUrl)
 					.withOauthToken(token)
 					.build();			
 		}
@@ -33,7 +38,7 @@ public class OpenShiftClientProvider {
 			if (username != null && password != null) {
 
 				openshiftConfig =  new OpenShiftConfigBuilder()
-						.withMasterUrl(getEnvVar(OCP_MASTER_URL))
+						.withMasterUrl(masterUrl)
 						.withUsername(username)
 						.withPassword(password)
 						.build();
