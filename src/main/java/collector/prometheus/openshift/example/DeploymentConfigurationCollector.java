@@ -20,9 +20,17 @@ class DeploymentConfigurationCollector extends Collector {
 
 		List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
 
-		GaugeMetricFamily labeledGauge = new GaugeMetricFamily("openshift_deployment_configuration_spec_replicas",
-				"number of replicas in DC", Arrays.asList("namespace", "deployment_configuration_name"));
+		GaugeMetricFamily specReplicasNumber = new GaugeMetricFamily("openshift_deployment_configuration_spec_replicas",
+				"number of replicas specified in DC", Arrays.asList("namespace", "deployment_configuration_name"));
 
+		GaugeMetricFamily statusReplicas = new GaugeMetricFamily("openshift_deployment_configuration_status_replicas",
+				"deploymentConfig status replicas", Arrays.asList("namespace", "deployment_configuration_name"));
+		
+		GaugeMetricFamily statusreadyReplicas = new GaugeMetricFamily("openshift_deployment_configuration_status_readyReplicass",
+				"deploymentConfig status readyReplicas", Arrays.asList("namespace", "deployment_configuration_name"));
+
+		GaugeMetricFamily statusUnavailableReplicas = new GaugeMetricFamily("openshift_deployment_configuration_status_unavailableReplicas",
+				"deploymentConfig status unavailableReplicas", Arrays.asList("namespace", "deployment_configuration_name"));
 
 		List<DeploymentConfig> deploymentConfigList =  osClient.deploymentConfigs().inAnyNamespace().list().getItems();
 
@@ -30,10 +38,31 @@ class DeploymentConfigurationCollector extends Collector {
 			String deploymentConfigName = deploymentConfig.getMetadata().getName();
 			String namespaceName = deploymentConfig.getMetadata().getNamespace();
 
-			labeledGauge.addMetric(Arrays.asList(namespaceName, deploymentConfigName), deploymentConfig.getSpec().getReplicas());
+
+			specReplicasNumber.addMetric(Arrays.asList(namespaceName, deploymentConfigName), 
+					deploymentConfig.getSpec().getReplicas());
+			
+			Object statusReplicasValue = deploymentConfig.getStatus().getAdditionalProperties().get("replicas");
+			Object statusReadyReplicasValue = deploymentConfig.getStatus().getAdditionalProperties().get("readyReplicas");
+			Object statusUnavailableValue = deploymentConfig.getStatus().getAdditionalProperties().get("unavailableReplicas");
+
+			if (statusReplicasValue !=  null ) statusReplicas.addMetric(Arrays.asList(namespaceName, deploymentConfigName), 
+					(Integer)statusReplicasValue);
+
+			if (statusReadyReplicasValue !=  null ) statusreadyReplicas.addMetric(Arrays.asList(namespaceName, deploymentConfigName), 
+					(Integer)(statusReadyReplicasValue));
+
+			if (statusUnavailableValue !=  null ) statusUnavailableReplicas.addMetric(Arrays.asList(namespaceName, deploymentConfigName), 
+					(Integer)statusUnavailableValue);
+
+
 		}				
 
-		mfs.add(labeledGauge);
+
+		mfs.add(specReplicasNumber);
+		mfs.add(statusReplicas);
+		mfs.add(statusreadyReplicas);
+		mfs.add(statusUnavailableReplicas);
 
 		return mfs;
 
