@@ -1,4 +1,4 @@
-package collector.prometheus.openshift.example;
+package collector.prometheus.openshift;
 
 import java.util.ArrayList;
 import java.util.Arrays;

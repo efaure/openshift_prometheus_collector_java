@@ -1,9 +1,9 @@
-package collector.prometheus.openshift.example;
+package collector.prometheus.openshift;
 
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class SampleController {
+public class CollectorController {
 	
 	static final DeploymentConfigurationCollector deploymentConfigurationCollector = new DeploymentConfigurationCollector().register();
 	

@@ -1,4 +1,4 @@
-package collector.prometheus.openshift.example;
+package collector.prometheus.openshift;
 
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
