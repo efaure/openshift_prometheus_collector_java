@@ -26,7 +26,7 @@ class DeploymentConfigurationCollector extends Collector {
 		GaugeMetricFamily statusReplicas = new GaugeMetricFamily("openshift_deployment_configuration_status_replicas",
 				"deploymentConfig status replicas", Arrays.asList("namespace", "deployment_configuration_name"));
 		
-		GaugeMetricFamily statusreadyReplicas = new GaugeMetricFamily("openshift_deployment_configuration_status_readyReplicass",
+		GaugeMetricFamily statusreadyReplicas = new GaugeMetricFamily("openshift_deployment_configuration_status_readyReplicas",
 				"deploymentConfig status readyReplicas", Arrays.asList("namespace", "deployment_configuration_name"));
 
 		GaugeMetricFamily statusUnavailableReplicas = new GaugeMetricFamily("openshift_deployment_configuration_status_unavailableReplicas",
