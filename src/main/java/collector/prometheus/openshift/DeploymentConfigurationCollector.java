@@ -20,7 +20,7 @@ class DeploymentConfigurationCollector extends Collector {
 
 		List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
 
-		List<String> labelsNameList = Arrays.asList("namespace", "deployment_configuration_name","monitoring-label");
+		List<String> labelsNameList = Arrays.asList("namespace", "deployment_configuration_name","monitoring_label");
 		
 		GaugeMetricFamily specReplicasNumber = new GaugeMetricFamily("openshift_deployment_configuration_spec_replicas",
 				"number of replicas specified in DC", labelsNameList);
