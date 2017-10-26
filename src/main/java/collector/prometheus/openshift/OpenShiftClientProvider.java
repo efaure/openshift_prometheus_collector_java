@@ -1,5 +1,12 @@
 package collector.prometheus.openshift;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.stream.Collectors;
+
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
@@ -12,6 +19,7 @@ public class OpenShiftClientProvider {
 	private static final String OCP_USERNAME = "OCP_USERNAME";
 	private static final String OCP_PASSWORD = "OCP_PASSWORD";
 	private static final String OCP_TOKEN = "OCP_TOKEN";
+	private static final String OCP_TOKEN_PATH = "OCP_TOKEN_PATH";
 	private DefaultOpenShiftClient osClient;
 
 	
@@ -19,19 +27,27 @@ public class OpenShiftClientProvider {
 	{
 
 		OpenShiftConfig openshiftConfig;
-		String token = getEnvVar(OCP_TOKEN);
-
+		String envToken = getEnvVar(OCP_TOKEN);
+		String envTokenPath = getEnvVar(OCP_TOKEN_PATH);
+		
 		String masterUrl = getEnvVar(OCP_MASTER_URL);
+		String token = null;
+		
 		if (masterUrl == null){
-			throw new IllegalArgumentException("Connectin to OpenShift cluster require env var "+OCP_MASTER_URL);
+			masterUrl="https://kubernetes.default.svc.cluster.local";
 		}
 		
-		if (token != null){
+		if (envToken != null) token = envToken;
+		else if (envTokenPath != null ) token = readFirstLineFromFile(envTokenPath);
+		
+		if (token != null){			
+			System.out.println("token : "+token);
 			openshiftConfig =  new OpenShiftConfigBuilder()
 					.withMasterUrl(masterUrl)
 					.withOauthToken(token)
 					.build();			
 		}
+				
 		else {
 			String username = getEnvVar(OCP_USERNAME);
 			String password = getEnvVar(OCP_PASSWORD);
@@ -44,7 +60,7 @@ public class OpenShiftClientProvider {
 						.build();
 			}
 			else {
-				throw new IllegalArgumentException("Authentication to OpenShift cluster require env var "+OCP_TOKEN+" or "+OCP_USERNAME+" and "+OCP_PASSWORD);
+				throw new IllegalArgumentException("Authentication to OpenShift cluster require env var "+OCP_TOKEN+" or "+OCP_TOKEN_PATH+" or ("+OCP_USERNAME+" and "+OCP_PASSWORD+").");
 			}
 		}
 
@@ -85,6 +101,16 @@ public class OpenShiftClientProvider {
 		System.out.println(" \n Getting  openshiftClient");
 		return osClient;
 	}
+	
+    private String readFirstLineFromFile(String filepath) {
+        String contents;
+		try {
+			contents = Files.lines(Paths.get(filepath)).findFirst().get();
+		} catch (IOException e) {
+			throw new IllegalArgumentException("Impossible to read content from file "+filepath);
+		}
+        return contents;
+    }
 
 
 
