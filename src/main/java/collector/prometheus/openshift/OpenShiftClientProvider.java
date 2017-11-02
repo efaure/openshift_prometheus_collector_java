@@ -24,6 +24,8 @@ public class OpenShiftClientProvider {
 	private static final String OCP_TOKEN = "OCP_TOKEN";
 	private static final String OCP_TOKEN_PATH = "OCP_TOKEN_PATH";
 	private static final String OCP_CA_PATH = "OCP_CA_PATH";
+	private static final String OCP_HTTP_PROXY = "OCP_HTTP_PROXY";
+	private static final String OCP_HTTPS_PROXY = "OCP_HTTPS_PROXY";
 	private DefaultOpenShiftClient osClient;
 
 	
@@ -31,17 +33,18 @@ public class OpenShiftClientProvider {
 	{
 
 		OpenShiftConfig openshiftConfig;
+		String masterUrl = getEnvVar(OCP_MASTER_URL);
 		String envToken = getEnvVar(OCP_TOKEN);
 		String envTokenPath = getEnvVar(OCP_TOKEN_PATH);
 		String envCAPath = getEnvVar(OCP_CA_PATH);		
-		String masterUrl = getEnvVar(OCP_MASTER_URL);
-		
-		if (masterUrl == null){
-			masterUrl="https://kubernetes.default.svc.cluster.local";
-		}
+		String envHttpProxy = getEnvVar(OCP_HTTP_PROXY);		
+		String envHttpsProxy = getEnvVar(OCP_HTTPS_PROXY);		
 		
 
 		// Add master URL to builder
+		if (masterUrl == null){
+			masterUrl="https://kubernetes.default.svc.cluster.local";
+		}		
 		OpenShiftConfigBuilder openshiftConfigBuilder = new OpenShiftConfigBuilder()
 				.withMasterUrl(masterUrl);
 		
@@ -50,20 +53,17 @@ public class OpenShiftClientProvider {
 		
 		// Add token or username password to builder
 		if (envToken != null) {
-			openshiftConfigBuilder = new OpenShiftConfigBuilder()	
-					.withOauthToken(envToken);
+			openshiftConfigBuilder.withOauthToken(envToken);
 		}			
 		else if (envTokenPath != null ) {
 			String token = readFirstLineFromFile(envTokenPath);
-			openshiftConfigBuilder = new OpenShiftConfigBuilder()
-					.withOauthToken(token);
+			openshiftConfigBuilder.withOauthToken(token);
 		}						
 		else {
 			String username = getEnvVar(OCP_USERNAME);
 			String password = getEnvVar(OCP_PASSWORD);
 			if (username != null && password != null) {
-				openshiftConfigBuilder = new OpenShiftConfigBuilder()
-						.withUsername(username)
+				openshiftConfigBuilder.withUsername(username)
 						.withPassword(password);
 			}
 			else {
@@ -71,7 +71,7 @@ public class OpenShiftClientProvider {
 			}
 		}
 		
-		// Add CA if defined to builder
+		// Add CA to builder if provided
 		if (envCAPath !=  null){
 			if (new File(envCAPath).isFile() ){
 				openshiftConfigBuilder.withCaCertFile(envCAPath);	
@@ -79,13 +79,20 @@ public class OpenShiftClientProvider {
 				throw new IllegalArgumentException(envCAPath+" is not a valid file path for CA");
 			}
 		}
+		// Add proxy settings to builder if provided
+		if (envHttpProxy !=  null){
+			openshiftConfigBuilder.withHttpProxy(envHttpProxy);
+		}		
+		if (envHttpsProxy !=  null){
+			openshiftConfigBuilder.withHttpProxy(envHttpsProxy);
+		}		
 		
-		// Add master URL to builder
+		// Build openshfit config
 		openshiftConfig =  openshiftConfigBuilder
 				.build();			
 
 		osClient = new DefaultOpenShiftClient(openshiftConfig);
-		logger.debug("Namespace "+osClient.getNamespace());
+
 	}
  
 	private static OpenShiftClientProvider OCPCLIENTSINGLETON_INSTANCE = null;
